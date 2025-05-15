@@ -412,6 +412,7 @@ def run_game(best_weights=None):
             pygame.display.update()
             FPSCLOCK.tick(FPS)
         # After game over, show options to player
+        
         DISPLAYSURF.fill(BGCOLOR)
         game_over_surf = BIGFONT.render('Game Over!', True, WHITE)
         game_over_rect = game_over_surf.get_rect()
@@ -419,13 +420,20 @@ def run_game(best_weights=None):
         DISPLAYSURF.blit(game_over_surf, game_over_rect)
         
         score_surf = BASICFONT.render(f'Final Score: {score}', True, WHITE)
+        save_score(score)
         score_rect = score_surf.get_rect()
         score_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 20)
         DISPLAYSURF.blit(score_surf, score_rect)
         
+        Highest = highest_score()
+        best_score = BASICFONT.render(f'Highest Score: {Highest}', True, RED)
+        best_score_rect = best_score.get_rect()
+        best_score_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 60)
+        DISPLAYSURF.blit(best_score, best_score_rect)
+        
         restart_surf = BASICFONT.render('Press R to restart or Q to quit', True, WHITE)
         restart_rect = restart_surf.get_rect()
-        restart_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 80)
+        restart_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 150)
         DISPLAYSURF.blit(restart_surf, restart_rect)
         
         pygame.display.update()
@@ -459,6 +467,17 @@ def terminate():
     """Terminate the game"""
     pygame.quit()
     sys.exit()
+
+def save_score(scors, file_name="Best_scors.txt"):
+    with open(file_name, "a") as f:
+        f.write(f"{scors}\n")
+
+def highest_score(file_name="Best_scors.txt"):
+    with open(file_name, "r") as f:
+        scores = [int(line.strip()) for line in f if line.strip()]
+        
+    scores.sort(reverse=True)
+    return scores[0]
 
 
 def check_key_press():
@@ -673,13 +692,20 @@ def draw_status(score, level):
     # Draw the score text
     score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
     score_rect = score_surf.get_rect()
-    score_rect.topleft = (WINDOWWIDTH - 150, 80)
+    score_rect.topleft = (WINDOWWIDTH - 180, 80)
     DISPLAYSURF.blit(score_surf, score_rect)
+    
+    # # Draw the Best score text
+    # Highest = highest_score()
+    # best_score = BASICFONT.render('Highest Score: %s ' % Highest, True, TEXTCOLOR)
+    # best_score_rect = best_score.get_rect()
+    # best_score_rect.topleft = (WINDOWWIDTH - 180, 100)
+    # DISPLAYSURF.blit(best_score, best_score_rect)
 
     # draw the level text
     levelSurf = BASICFONT.render('Level: %s' % level, True, TEXTCOLOR)
     levelRect = levelSurf.get_rect()
-    levelRect.topleft = (WINDOWWIDTH - 150, 110)
+    levelRect.topleft = (WINDOWWIDTH - 180, 125)
     DISPLAYSURF.blit(levelSurf, levelRect)
 
 
@@ -706,7 +732,7 @@ def draw_next_piece(piece):
     # draw the "next" text
     next_surf = BASICFONT.render('Next:', True, TEXTCOLOR)
     next_rect = next_surf.get_rect()
-    next_rect.topleft = (WINDOWWIDTH - 150, 160)
+    next_rect.topleft = (WINDOWWIDTH - 180, 160)
     DISPLAYSURF.blit(next_surf, next_rect)
 
     # draw the "next" piece
