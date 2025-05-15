@@ -191,14 +191,35 @@ def extract_feats(move_info):
         floor_sides,
         wall_sides
     ]
-def ai_play_game(board, falling_piece, weights):
+    
+def get_x_bounds_for_rotation(shape, rotation_index):
+    shape_matrix = PIECES[shape][rotation_index]
+    leftmost = min([x for y in shape_matrix for x, c in enumerate(y) if c != BLANK])
+    rightmost = max([x for y in shape_matrix for x, c in enumerate(y) if c != BLANK])
+    
+    min_col = 0 - leftmost
+    max_col = BOARDWIDTH - (rightmost + 1)  
+
+    return min_col, max_col
+
+def play_best_move(board, falling_piece, weights):
+    """
+    With the current state of the board and current falling piece,
+    the function determines and plays the best move according to the provided weights
+
+    Args:
+        board (2D List): Board being played on
+        falling_piece (Dict): The piece currently being played
+        weights (List): List of weights that the ai uses to decide the best move
+    """
     total_holes_before, blocking_before = calc_initial_move_info(board)
     best_score = -math.inf
     best_col = None
     best_rotation = 0
     
-    for col in range(BOARDWIDTH):
-        for rotation in range(len(PIECES[falling_piece['shape']])):
+    for rotation in range(len(PIECES[falling_piece['shape']])):
+        min_col, max_col = get_x_bounds_for_rotation(falling_piece['shape'], rotation)
+        for col in range(min_col, max_col + 1):
             rotation_info = calc_move_info(board, copy.deepcopy(falling_piece), col, rotation, total_holes_before, blocking_before)
             if not rotation_info[0]:
                 continue
@@ -221,6 +242,54 @@ def ai_play_game(board, falling_piece, weights):
         while is_valid_position(board, falling_piece, adj_Y=1):
             falling_piece['y']+=1 
      
+ 
+# def rate_move(board, piece,  col, weights):
+#     total_holes_before, blocking_before = calc_initial_move_info(board)
+    
+#     best_score = -math.inf
+#     best_rotation = 0
+    
+#     for rotation in range(len(PIECES[piece["shape"]])):
+#         rotation_info  = calc_move_info(board, copy.deepcopy(piece), col, rotation, total_holes_before, blocking_before)
+#         if not rotation_info[0] and col == 9:
+#             print(f"Shape {piece['shape']} rotation {rotation} is invalid at col=0")
+#         if not rotation_info[0]:
+#             continue
+        
+#         features = extract_feats(rotation_info)
+        
+#         score = 0
+#         for i in range(len(features)):
+#             score += features[i]*weights[i]
+            
+#         if score > best_score:
+#             best_score = score
+#             best_rotation = rotation
+    
+#     return best_score, best_rotation
+
+# def ai_play_game(board, falling_piece, weights):
+#     best_move = [-math.inf, None, None] # Score, x/col , rotation
+    
+#     for col in range(BOARDWIDTH):
+        
+#         move_score, rotation = rate_move(board, falling_piece, col, weights)
+        
+#         if move_score > best_move[0]:
+#             best_move = [move_score, col, rotation]
+    
+#     best_col, best_rot = best_move[1], best_move[2]
+    
+#     if best_col is not None:
+#         falling_piece['x'], falling_piece['rotation']  = best_col, best_rot
+    
+#         while is_valid_position(board, falling_piece, adj_Y=1):
+#             falling_piece['y'] += 1
+    
+ 
+ 
+ 
+ 
               
 ##############################################################################
 # MAIN GAME
@@ -278,7 +347,7 @@ def run_game(best_weights=None):
             check_quit()
             if not MANUAL_GAME:
                 if time.time() - last_ai_move_time > AI_MOVE_DELAY:
-                    ai_play_game(board, falling_piece, best_weights)
+                    play_best_move(board, falling_piece, best_weights)
                     last_ai_move_time = time.time() 
             
             else:

@@ -2,14 +2,14 @@ import random, math, copy, itertools
 import tetris_base as tb
 import numpy as np
 
-POP_SIZE = 500
-TRAIN_GAME_STEPS = 600
-TRAIN_GENERATION_STEPS = 10
+POP_SIZE = 30
+TRAIN_GAME_STEPS = 500
+TRAIN_GENERATION_STEPS = 20
 LOWER_RANGE = -10
 UPPER_RANGE= 10
 MUT_RATE = 0.1
 
-def extract_feats(board, move_info):
+def extract_feats(move_info):
     
     (_, max_h, lines_removed, new_holes, blocking_blocks,piece_sides, floor_sides, wall_sides) = move_info
     
@@ -23,32 +23,19 @@ def extract_feats(board, move_info):
         wall_sides
     ]
 
-def rate_move(board, piece, next_piece, col, weights):
-    total_holes_before, blocking_before = tb.calc_initial_move_info(board)
-    
-    best_score = -math.inf
-    best_rotation = 0
-    
-    for rotation in range(len(tb.PIECES[piece["shape"]])):
-        rotation_info  = tb.calc_move_info(board, copy.deepcopy(piece), col, rotation, total_holes_before, blocking_before)
-        if not rotation_info[0]:
-            continue
-        
-        features = extract_feats(board, rotation_info)
-        
-        score = 0
-        for i in range(len(features)):
-            score += features[i]*weights[i]
-            
-        if score > best_score:
-            best_score = score
-            best_rotation = rotation
-    
-    return best_score, best_rotation
+def ai_game_simulation(weights, max_steps=TRAIN_GAME_STEPS):
+    """
+    Simulates Game with a set of weights and returns the final score
 
-def ai_play_game(weights, max_steps=TRAIN_GAME_STEPS):
-    
+    Args:
+        weights (List): 
+        max_steps (Int, optional): Maximum amount of game moves. Defaults to TRAIN_GAME_STEPS.
+
+    Returns:
+        Score (Int): Score attained with the current set of weights
+    """
     board= tb.get_blank_board()
+    total_holes_before, blocking_before = tb.calc_initial_move_info(board)
     score = 0
     falling_piece = tb.get_new_piece()
     next_piece = tb.get_new_piece()
@@ -57,11 +44,23 @@ def ai_play_game(weights, max_steps=TRAIN_GAME_STEPS):
     while steps < max_steps:
         best_move = [-math.inf, None, None] # Score, x/col , rotation
         
-        for col in range(tb.BOARDWIDTH):
-            move_score, rotation = rate_move(board, falling_piece, next_piece, col, weights)
-            
-            if move_score > best_move[0]:
-                best_move = [move_score, col, rotation]
+        for rotation in range(len(tb.PIECES[falling_piece['shape']])):
+            min_col, max_col = tb.get_x_bounds_for_rotation(falling_piece['shape'], rotation)
+            for col in range(min_col, max_col + 1):
+                rotation_info = tb.calc_move_info(board, copy.deepcopy(falling_piece), col, rotation, total_holes_before, blocking_before)
+                if not rotation_info[0]:
+                    continue
+                
+                features = extract_feats(rotation_info)
+                
+                move_score = 0
+                for i in range(len(features)):
+                    move_score += features[i]*weights[i]
+                
+                if move_score > best_move[0]:
+                    best_move[0] = move_score
+                    best_move[1] = col
+                    best_move[2] = rotation
         
         if best_move[1] is None:
             break
@@ -102,7 +101,7 @@ def initialize_pop(pop_size = POP_SIZE):
 def calc_fitness(population):
     fitness_scores = []
     for chromosome in population:
-        score = ai_play_game(chromosome)
+        score = ai_game_simulation(chromosome)
         if not math.isfinite(score):
             score = 0
         fitness_scores.append(score)
@@ -160,12 +159,13 @@ def train(generations = TRAIN_GENERATION_STEPS):
 def save_weights(weights, filename="best_weights.txt"):
     with open(filename, "w") as f:
         f.write(",".join(map(str, weights)))
+        
 
 
 if __name__ == "__main__":
     best_weights = train()
     save_weights(best_weights)
-    print(f"Final Score: {ai_play_game(best_weights)}")
+    print(f"Final Score: {ai_game_simulation(best_weights)}")
     
     
 
