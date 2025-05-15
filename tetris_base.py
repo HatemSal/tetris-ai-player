@@ -309,7 +309,7 @@ def main(weights=None):
 
 
 def run_game(best_weights=None):
-    pygame.mixer.music.load("03. A-Type Music (Korobeiniki).mp3")
+    pygame.mixer.music.load("Music/03. A-Type Music (Korobeiniki).mp3")
     pygame.mixer.music.play(-1)
     while True:
         # Setup variables
@@ -486,7 +486,7 @@ def run_game(best_weights=None):
         # After game over, show options to player
         
         pygame.mixer.music.stop()
-        pygame.mixer.music.load("18. Game Over.mp3")
+        pygame.mixer.music.load("Music/18. Game Over.mp3")
         pygame.mixer.music.play(0)
         DISPLAYSURF.fill(BGCOLOR)
         game_over_surf = BIGFONT.render('Game Over!', True, RED)
