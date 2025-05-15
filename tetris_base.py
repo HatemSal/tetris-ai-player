@@ -239,174 +239,210 @@ def main(weights=None):
 
 
 def run_game(best_weights=None):
-    # Setup variables
-    board              = get_blank_board()
-    last_movedown_time = time.time()
-    last_moveside_time = time.time()
-    last_fall_time     = time.time()
-    last_ai_move_time = time.time()
-    moving_down        = False # note: there is no movingUp variable
-    moving_left        = False
-    moving_right       = False
-    score              = 0
-    level, fall_freq   = calc_level_and_fall_freq(score)
-
-    falling_piece      = get_new_piece()
-    next_piece         = get_new_piece()
-
     while True:
-        # Game Loop
-        if (falling_piece == None):
-            # No falling piece in play, so start a new piece at the top
-            falling_piece = next_piece
-            next_piece    = get_new_piece()
-            score += 1
+        # Setup variables
+        board              = get_blank_board()
+        last_movedown_time = time.time()
+        last_moveside_time = time.time()
+        last_fall_time     = time.time()
+        last_ai_move_time = time.time()
+        moving_down        = False # note: there is no movingUp variable
+        moving_left        = False
+        moving_right       = False
+        score              = 0
+        level, fall_freq   = calc_level_and_fall_freq(score)
 
-            # Reset last_fall_time
-            last_fall_time = time.time()
+        falling_piece      = get_new_piece()
+        next_piece         = get_new_piece()
 
-            if (not is_valid_position(board, falling_piece)):
-                # GAME-OVER
-                # Can't fit a new piece on the board, so game over.
-                return
-
-        # Check for quit
-        check_quit()
-        if not MANUAL_GAME:
-            if time.time() - last_ai_move_time > AI_MOVE_DELAY:
-                ai_play_game(board, falling_piece, best_weights)
-                last_ai_move_time = time.time() 
+        game_over = False
         
-        else:
+        
+        while not game_over:
+            # Game Loop
+            if (falling_piece == None):
+                # No falling piece in play, so start a new piece at the top
+                falling_piece = next_piece
+                next_piece    = get_new_piece()
+                score += 1
 
-            for event in pygame.event.get():
-                # Event handling loop
-                if (event.type == KEYUP):
-                    if (event.key == K_p):
-                        # PAUSE the game
-                        DISPLAYSURF.fill(BGCOLOR)
-                        # Pause until a key press
-                        show_text_screen('Paused')
+                # Reset last_fall_time
+                last_fall_time = time.time()
 
-                        # Update times
-                        last_fall_time     = time.time()
-                        last_movedown_time = time.time()
-                        last_moveside_time = time.time()
+                if (not is_valid_position(board, falling_piece)):
+                    # GAME-OVER
+                    # Can't fit a new piece on the board, so game over.
+                    game_over = True
 
-                    elif (event.key == K_LEFT or event.key == K_a):
-                        moving_left = False
-                    elif (event.key == K_RIGHT or event.key == K_d):
-                        moving_right = False
-                    elif (event.key == K_DOWN or event.key == K_s):
-                        moving_down = False
+            # Check for quit
+            check_quit()
+            if not MANUAL_GAME:
+                if time.time() - last_ai_move_time > AI_MOVE_DELAY:
+                    ai_play_game(board, falling_piece, best_weights)
+                    last_ai_move_time = time.time() 
+            
+            else:
 
-                elif event.type == KEYDOWN:
-                    # Moving the piece sideways
-                    if (event.key == K_LEFT or event.key == K_a) and \
-                        is_valid_position(board, falling_piece, adj_X=-1):
+                for event in pygame.event.get():
+                    # Event handling loop
+                    if (event.type == KEYUP):
+                        if (event.key == K_p):
+                            # PAUSE the game
+                            DISPLAYSURF.fill(BGCOLOR)
+                            # Pause until a key press
+                            show_text_screen('Paused')
 
-                        falling_piece['x'] -= 1
-                        moving_left         = True
-                        moving_right        = False
-                        last_moveside_time  = time.time()
+                            # Update times
+                            last_fall_time     = time.time()
+                            last_movedown_time = time.time()
+                            last_moveside_time = time.time()
 
-                    elif (event.key == K_RIGHT or event.key == K_d) and \
-                        is_valid_position(board, falling_piece, adj_X=1):
+                        elif (event.key == K_LEFT or event.key == K_a):
+                            moving_left = False
+                        elif (event.key == K_RIGHT or event.key == K_d):
+                            moving_right = False
+                        elif (event.key == K_DOWN or event.key == K_s):
+                            moving_down = False
 
-                        falling_piece['x'] += 1
-                        moving_right        = True
-                        moving_left         = False
-                        last_moveside_time  = time.time()
+                    elif event.type == KEYDOWN:
+                        # Moving the piece sideways
+                        if (event.key == K_LEFT or event.key == K_a) and \
+                            is_valid_position(board, falling_piece, adj_X=-1):
 
-                    # Rotating the piece (if there is room to rotate)
-                    elif (event.key == K_UP or event.key == K_w):
-                        falling_piece['rotation'] = (falling_piece['rotation'] + 1) % len(PIECES[falling_piece['shape']])
+                            falling_piece['x'] -= 1
+                            moving_left         = True
+                            moving_right        = False
+                            last_moveside_time  = time.time()
 
-                        if (not is_valid_position(board, falling_piece)):
-                            falling_piece['rotation'] = (falling_piece['rotation'] - 1) % len(PIECES[falling_piece['shape']])
+                        elif (event.key == K_RIGHT or event.key == K_d) and \
+                            is_valid_position(board, falling_piece, adj_X=1):
 
-                    elif (event.key == K_q):
-                        falling_piece['rotation'] = (falling_piece['rotation'] - 1) % len(PIECES[falling_piece['shape']])
+                            falling_piece['x'] += 1
+                            moving_right        = True
+                            moving_left         = False
+                            last_moveside_time  = time.time()
 
-                        if (not is_valid_position(board, falling_piece)):
+                        # Rotating the piece (if there is room to rotate)
+                        elif (event.key == K_UP or event.key == K_w):
                             falling_piece['rotation'] = (falling_piece['rotation'] + 1) % len(PIECES[falling_piece['shape']])
 
-                    # Making the piece fall faster with the down key
-                    elif (event.key == K_DOWN or event.key == K_s):
-                        moving_down = True
+                            if (not is_valid_position(board, falling_piece)):
+                                falling_piece['rotation'] = (falling_piece['rotation'] - 1) % len(PIECES[falling_piece['shape']])
 
-                        if (is_valid_position(board, falling_piece, adj_Y=1)):
-                            falling_piece['y'] += 1
+                        elif (event.key == K_q):
+                            falling_piece['rotation'] = (falling_piece['rotation'] - 1) % len(PIECES[falling_piece['shape']])
 
-                        last_movedown_time = time.time()
+                            if (not is_valid_position(board, falling_piece)):
+                                falling_piece['rotation'] = (falling_piece['rotation'] + 1) % len(PIECES[falling_piece['shape']])
 
-                    # Move the current piece all the way down
-                    elif event.key == K_SPACE:
-                        moving_down  = False
-                        moving_left  = False
-                        moving_right = False
+                        # Making the piece fall faster with the down key
+                        elif (event.key == K_DOWN or event.key == K_s):
+                            moving_down = True
 
-                        for i in range(1, BOARDHEIGHT):
-                            if (not is_valid_position(board, falling_piece, adj_Y=i)):
-                                break
+                            if (is_valid_position(board, falling_piece, adj_Y=1)):
+                                falling_piece['y'] += 1
 
-                        falling_piece['y'] += i - 1
+                            last_movedown_time = time.time()
 
-            # Handle moving the piece because of user input
-            if (moving_left or moving_right) and time.time() - last_moveside_time > MOVESIDEWAYSFREQ:
-                if moving_left and is_valid_position(board, falling_piece, adj_X=-1):
-                    falling_piece['x'] -= 1
-                elif moving_right and is_valid_position(board, falling_piece, adj_X=1):
-                    falling_piece['x'] += 1
+                        # Move the current piece all the way down
+                        elif event.key == K_SPACE:
+                            moving_down  = False
+                            moving_left  = False
+                            moving_right = False
 
-                last_moveside_time = time.time()
+                            for i in range(1, BOARDHEIGHT):
+                                if (not is_valid_position(board, falling_piece, adj_Y=i)):
+                                    break
 
-            if moving_down and time.time() - last_movedown_time > MOVEDOWNFREQ and is_valid_position(board, falling_piece, adj_Y=1):
-                falling_piece['y'] += 1
-                last_movedown_time = time.time()
+                            falling_piece['y'] += i - 1
 
-        # Let the piece fall if it is time to fall
-        if time.time() - last_fall_time > fall_freq:
-            # See if the piece has landed
-            if (not is_valid_position(board, falling_piece, adj_Y=1)):
-                # Falling piece has landed, set it on the board
-                add_to_board(board, falling_piece)
-                num_removed_lines = remove_complete_lines(board)
+                # Handle moving the piece because of user input
+                if (moving_left or moving_right) and time.time() - last_moveside_time > MOVESIDEWAYSFREQ:
+                    if moving_left and is_valid_position(board, falling_piece, adj_X=-1):
+                        falling_piece['x'] -= 1
+                    elif moving_right and is_valid_position(board, falling_piece, adj_X=1):
+                        falling_piece['x'] += 1
 
-                # Bonus score for complete lines at once
-                # 40   pts for 1 line
-                # 120  pts for 2 lines
-                # 300  pts for 3 lines
-                # 1200 pts for 4 lines
+                    last_moveside_time = time.time()
 
-                if(num_removed_lines == 1):
-                    score += 40
-                elif (num_removed_lines == 2):
-                    score += 120
-                elif (num_removed_lines == 3):
-                    score += 300
-                elif (num_removed_lines == 4):
-                    score += 1200
+                if moving_down and time.time() - last_movedown_time > MOVEDOWNFREQ and is_valid_position(board, falling_piece, adj_Y=1):
+                    falling_piece['y'] += 1
+                    last_movedown_time = time.time()
 
-                level, fall_freq = calc_level_and_fall_freq(score)
-                falling_piece    = None
+            # Let the piece fall if it is time to fall
+            if time.time() - last_fall_time > fall_freq:
+                # See if the piece has landed
+                if (not is_valid_position(board, falling_piece, adj_Y=1)):
+                    # Falling piece has landed, set it on the board
+                    add_to_board(board, falling_piece)
+                    num_removed_lines = remove_complete_lines(board)
 
-            else:
-                # Piece did not land, just move the piece down
-                falling_piece['y'] += 1
-                last_fall_time      = time.time()
+                    # Bonus score for complete lines at once
+                    # 40   pts for 1 line
+                    # 120  pts for 2 lines
+                    # 300  pts for 3 lines
+                    # 1200 pts for 4 lines
 
-        # Drawing everything on the screen
+                    if(num_removed_lines == 1):
+                        score += 40
+                    elif (num_removed_lines == 2):
+                        score += 120
+                    elif (num_removed_lines == 3):
+                        score += 300
+                    elif (num_removed_lines == 4):
+                        score += 1200
+
+                    level, fall_freq = calc_level_and_fall_freq(score)
+                    falling_piece    = None
+
+                else:
+                    # Piece did not land, just move the piece down
+                    falling_piece['y'] += 1
+                    last_fall_time      = time.time()
+
+            # Drawing everything on the screen
+            DISPLAYSURF.fill(BGCOLOR)
+            draw_board(board)
+            draw_status(score, level)
+            draw_next_piece(next_piece)
+
+            if falling_piece != None:
+                draw_piece(falling_piece)
+
+            pygame.display.update()
+            FPSCLOCK.tick(FPS)
+        # After game over, show options to player
         DISPLAYSURF.fill(BGCOLOR)
-        draw_board(board)
-        draw_status(score, level)
-        draw_next_piece(next_piece)
-
-        if falling_piece != None:
-            draw_piece(falling_piece)
-
+        game_over_surf = BIGFONT.render('Game Over!', True, WHITE)
+        game_over_rect = game_over_surf.get_rect()
+        game_over_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 - 50)
+        DISPLAYSURF.blit(game_over_surf, game_over_rect)
+        
+        score_surf = BASICFONT.render(f'Final Score: {score}', True, WHITE)
+        score_rect = score_surf.get_rect()
+        score_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 20)
+        DISPLAYSURF.blit(score_surf, score_rect)
+        
+        restart_surf = BASICFONT.render('Press R to restart or Q to quit', True, WHITE)
+        restart_rect = restart_surf.get_rect()
+        restart_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 80)
+        DISPLAYSURF.blit(restart_surf, restart_rect)
+        
         pygame.display.update()
-        FPSCLOCK.tick(FPS)
+        
+        waiting_for_input = True
+        while waiting_for_input:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    terminate()
+                if event.type == KEYDOWN:
+                    if event.key == K_r:
+                        waiting_for_input = False
+                        break
+                    elif event.key == K_q or event.key == K_ESCAPE:
+                        terminate()
+            
+
 
 
 ##############################################################################
@@ -462,8 +498,8 @@ def show_text_screen(text):
 
 
 def check_quit():
-    for event in pygame.event.get(QUIT): # get all the QUIT events
-        terminate() # terminate if any QUIT events are present
+    # for event in pygame.event.get(QUIT): # get all the QUIT events
+    #     terminate() # terminate if any QUIT events are present
 
     for event in pygame.event.get(KEYUP): # get all the KEYUP events
         if event.key == K_ESCAPE:
