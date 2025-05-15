@@ -295,13 +295,14 @@ def play_best_move(board, falling_piece, weights):
 # MAIN GAME
 ##############################################################################
 def main(weights=None):
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, MIDFONT
     pygame.init()
 
     FPSCLOCK    = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT   = pygame.font.Font('freesansbold.ttf', 18)
     BIGFONT     = pygame.font.Font('freesansbold.ttf', 100)
+    MIDFONT     = pygame.font.Font('freesansbold.ttf', 40)
     pygame.display.set_caption('Tetris AI')
     
     run_game(best_weights=weights)
@@ -488,7 +489,7 @@ def run_game(best_weights=None):
         pygame.mixer.music.load("18. Game Over.mp3")
         pygame.mixer.music.play(0)
         DISPLAYSURF.fill(BGCOLOR)
-        game_over_surf = BIGFONT.render('Game Over!', True, WHITE)
+        game_over_surf = BIGFONT.render('Game Over!', True, RED)
         game_over_rect = game_over_surf.get_rect()
         game_over_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 - 50)
         DISPLAYSURF.blit(game_over_surf, game_over_rect)
@@ -500,7 +501,7 @@ def run_game(best_weights=None):
         DISPLAYSURF.blit(score_surf, score_rect)
         
         Highest = highest_score()
-        best_score = BASICFONT.render(f'Highest Score: {Highest}', True, RED)
+        best_score = BASICFONT.render(f'Highest Score: {Highest}', True, GREEN)
         best_score_rect = best_score.get_rect()
         best_score_rect.center = (WINDOWWIDTH // 2, WINDOWHEIGHT // 2 + 60)
         DISPLAYSURF.blit(best_score, best_score_rect)
@@ -767,6 +768,17 @@ def draw_status(score, level):
     score_surf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
     score_rect = score_surf.get_rect()
     score_rect.topleft = (WINDOWWIDTH - 180, 80)
+    DISPLAYSURF.blit(score_surf, score_rect)
+
+
+    # Draw the text
+    score_surf = MIDFONT.render('TETRIS', True, LIGHTRED)
+    score_rect = score_surf.get_rect()
+    score_rect.topleft = (WINDOWWIDTH - 630, 250)
+    DISPLAYSURF.blit(score_surf, score_rect)
+    score_surf = MIDFONT.render('AI', True, LIGHTBLUE)
+    score_rect = score_surf.get_rect()
+    score_rect.topleft = (WINDOWWIDTH - 580, 310)
     DISPLAYSURF.blit(score_surf, score_rect)
     
     # # Draw the Best score text
