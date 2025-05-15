@@ -309,9 +309,9 @@ def main(weights=None):
 
 
 def run_game(best_weights=None):
-    pygame.mixer.music.load("Music/03. A-Type Music (Korobeiniki).mp3")
-    pygame.mixer.music.play(-1)
     while True:
+        pygame.mixer.music.load("Music/03. A-Type Music (Korobeiniki).mp3")
+        pygame.mixer.music.play(-1)
         # Setup variables
         board              = get_blank_board()
         last_movedown_time = time.time()
@@ -485,7 +485,7 @@ def run_game(best_weights=None):
             FPSCLOCK.tick(FPS)
         # After game over, show options to player
         
-        pygame.mixer.music.stop()
+
         pygame.mixer.music.load("Music/18. Game Over.mp3")
         pygame.mixer.music.play(0)
         DISPLAYSURF.fill(BGCOLOR)
