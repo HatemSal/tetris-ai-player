@@ -136,7 +136,7 @@ def crossover(population):
 def mutation(offsprings, mut_rate = MUT_RATE):
     n_genes = len(offsprings[0])
     n_chroms = len(offsprings)
-    num_mutated = int(n_genes*n_chroms*MUT_RATE)
+    num_mutated = int(n_genes*n_chroms*mut_rate)
     for i in range(num_mutated):
         chrom_idx = random.randrange(n_chroms)
         mut_idx = random.randrange(n_genes)
@@ -156,10 +156,15 @@ def train(generations = TRAIN_GENERATION_STEPS):
     best_match_idx = np.argmax(fitness_scores)
     return population[best_match_idx]
     
+    
+def save_weights(weights, filename="best_weights.txt"):
+    with open(filename, "w") as f:
+        f.write(",".join(map(str, weights)))
 
 
 if __name__ == "__main__":
     best_weights = train()
+    save_weights(best_weights)
     print(f"Final Score: {ai_play_game(best_weights)}")
     
     
