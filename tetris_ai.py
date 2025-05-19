@@ -1,6 +1,7 @@
 import random, math, copy, itertools
 import tetris_base as tb
 import numpy as np
+import matplotlib.pyplot as plt
 
 POP_SIZE = 30
 TRAIN_GAME_STEPS = 500
@@ -8,6 +9,7 @@ TRAIN_GENERATION_STEPS = 20
 LOWER_RANGE = -10
 UPPER_RANGE= 10
 MUT_RATE = 0.1
+random.seed(42)
 
 def extract_feats(move_info):
     
@@ -143,13 +145,30 @@ def mutation(offsprings, mut_rate = MUT_RATE):
 
 def train(generations = TRAIN_GENERATION_STEPS):
     population = initialize_pop()
+    best_scores = []
+    second_best_scores = []
+    
     for i in range(generations):
         fitness_scores = calc_fitness(population)
-        print(f"Average Score : {sum(fitness_scores)/len(fitness_scores)}")
+        sorted_scores = sorted(fitness_scores, reverse=True)
+        best_scores.append(sorted_scores[0])
+        second_best_scores.append(sorted_scores[1])
+        
+        print(f"Generation {i+1} - Avg Score: {sum(fitness_scores)/len(fitness_scores)}, Best: {sorted_scores[0]}")
+        
         population_filtered = selection(population, fitness_scores)
         offsprings = crossover(population_filtered)
         mutation(offsprings)
         population = offsprings + population_filtered
+
+    plt.plot(best_scores, label="Best Chromosome")
+    plt.plot(second_best_scores, label="Second Best Chromosome")
+    plt.xlabel("Generation")
+    plt.ylabel("Score")
+    plt.title("Progress of Top Chromosomes")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
     
     fitness_scores = calc_fitness(population)
     best_match_idx = np.argmax(fitness_scores)
