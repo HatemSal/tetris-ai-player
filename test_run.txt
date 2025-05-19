@@ -1,1 +1,1 @@
-Average final score for the test run: 8860.2
+Average final score for the test run: 11152.4

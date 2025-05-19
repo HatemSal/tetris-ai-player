@@ -6,7 +6,7 @@ def simulate_test_run():
         weights = list(map(float, line.strip().split(",")))
     scores = []
     for i in range(10):
-        score = ta.ai_game_simulation(weights)
+        score = ta.ai_game_simulation(weights, max_steps=2000)
         scores.append(score)
     average_final_score = sum(scores) / len(scores)
     with open('test_run.txt',"w") as f:
